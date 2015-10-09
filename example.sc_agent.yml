@@ -1,0 +1,10 @@
+version: 1
+control-service:
+  hostname: "control-service"
+dataset:
+  backend: "dell_storagecenter_driver"
+  storage_host: "smem01"
+  dell_sc_ssn: 448
+  username: "Admin"
+  password: "password"
+

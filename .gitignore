@@ -1,0 +1,10 @@
+*.py[cod]
+
+# Functional test artifacts
+_trial_temp
+functional.yml
+driver.log
+
+*.egg-info/
+build/
+dist/
