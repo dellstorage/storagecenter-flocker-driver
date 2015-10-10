@@ -204,8 +204,8 @@ class DellStorageCenterBlockDeviceAPI(object):
 
         with self._client.open_connection() as api:
             # Check that we have that volume
-            volume = api.find_volume(blockdevice_id)
-            if not volume:
+            scvolume = api.find_volume(blockdevice_id)
+            if not scvolume:
                 raise blockdevice.UnknownVolume(blockdevice_id)
 
             # Make sure we have a server defined for this host
@@ -224,8 +224,6 @@ class DellStorageCenterBlockDeviceAPI(object):
             # Make sure we were able to find something
             if not host:
                 raise BlockDriverAPIException()
-
-            scvolume = api.find_volume(blockdevice_id)
 
             # First check if we are already mapped
             mappings = api.find_mapping_profiles(scvolume)
