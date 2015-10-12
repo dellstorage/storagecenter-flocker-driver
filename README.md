@@ -1,5 +1,5 @@
-Dell Storage Center Driver for Flocker by ClusterHQ
-===================================================
+Dell Storage Center Driver for ClusterHQ/Flocker
+================================================
 
 This block storage driver for [Flocker](https://clusterhq.com/) enables Dell Storage Center persistent block storage.
 
