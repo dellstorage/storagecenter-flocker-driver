@@ -20,6 +20,8 @@ The following components are required before using the Dell Storage Center Drive
 
 You must first have Flocker installed on your node. Instructions on getting started with Flocker can be found on the [Flocker](https://clusterhq.com/flocker/getting-started) web site.
 
+This driver has been tested against Flocker 1.4.0.
+
 **Enterprise Manager**
 
 You will need Enterprise Manager 2015 R1 or later and a Storage Center array. Enterprise Manager provides
