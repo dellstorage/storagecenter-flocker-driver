@@ -33,5 +33,7 @@ setup(
     packages=find_packages(exclude=['test*']),
     author='Sean McGinnis',
     author_email='sean_mcginnis@dell.com',
+    url='https://github.com/dellstorage/storagecenter-flocker-driver',
+    download_url='https://github.com/dellstorage/storagecenter-flocker-driver/tarball/1.0',
     data_files=[('/etc/flocker', ['example.sc_agent.yml'])]
 )
