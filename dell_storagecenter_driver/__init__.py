@@ -13,8 +13,8 @@
 #    under the License.
 """Dell Storage Center Plugin for Flocker."""
 
-from flocker import node
 from dell_storagecenter_driver import dell_storagecenter_blockdevice
+from flocker import node
 
 
 DRIVER_NAME = u"dell_storagecenter_flocker_plugin"

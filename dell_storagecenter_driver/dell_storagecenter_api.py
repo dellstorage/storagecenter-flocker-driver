@@ -1377,7 +1377,7 @@ class StorageCenterApi(object):
         :returns: List of (ip, port) tuples.
         """
         result = []
-        pf = self._get_payload_filter()                                                                                        
+        pf = self._get_payload_filter()
         pf.append('scSerialNumber', self.ssn)
         pf.append('TransportType', 'Iscsi')
         r = self.client.post('StorageCenter/ScFaultDomain/GetList',

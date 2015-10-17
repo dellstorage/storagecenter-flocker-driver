@@ -292,6 +292,7 @@ class DellStorageCenterBlockDeviceAPI(object):
 
     def list_volumes(self):
         """List all the block devices available via the back end API.
+
         :returns: A ``list`` of ``BlockDeviceVolume``s.
         """
         volumes = []
