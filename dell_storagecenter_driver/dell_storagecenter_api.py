@@ -196,7 +196,7 @@ class StorageCenterApi(object):
         self.ssn = None
         self.vfname = DEFAULT_VOLUME_FOLDER
         self.sfname = DEFAULT_SERVER_FOLDER
-        self.legacypayloadfilters = True
+        self.legacypayloadfilters = False
         self.client = HttpClient(host,
                                  port,
                                  user,
@@ -349,7 +349,9 @@ class StorageCenterApi(object):
             apidict = self._get_json(r)
             version = apidict['apiVersion']
             splitver = version.split('.')
-            if splitver[0] >= '2':
+            # REST API only available starting with 2.0, but 2.0 and 2.1
+            # did filtering a little differently
+            if splitver[0] == '2' and splitver[1] in ['0', '1']:
                 self.legacypayloadfilters = True
         except Exception:
             # Good return but not the login response we were expecting.
