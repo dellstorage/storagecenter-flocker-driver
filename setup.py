@@ -27,7 +27,10 @@ setup(
         'Programming Language :: Python :: 2.7',
     ],
 
-    install_requires=['requests>=2.5.2'],
+    install_requires=[
+        'requests>=2.5.2',
+        'six',
+        'bitmath'],
 
     keywords='backend, plugin, flocker, docker, python',
     packages=find_packages(exclude=['test*']),
