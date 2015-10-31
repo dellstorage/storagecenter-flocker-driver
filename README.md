@@ -91,6 +91,9 @@ dataset:
   server_folder_name: "<Server folder for Flocker hosts. DEFAULT='Flocker'>"
 ```
 
+**_NOTE:_** The agent configuration should match between all nodes of the cluster.
+
+
 **Test Configuration**
 
 To validate agent settings and make sure everything will work as expected, you may run the following tests from the downloaded driver directory.
