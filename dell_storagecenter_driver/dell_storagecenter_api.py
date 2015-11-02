@@ -153,7 +153,6 @@ class StorageCenterApiHelper(object):
     """
     def __init__(self, config):
         self.config = config
-        LOG.error("Config: %s", config)
 
     def open_connection(self):
         """Creates the StorageCenterApi object.
@@ -168,9 +167,9 @@ class StorageCenterApiHelper(object):
                                       False)
         connection.ssn = self.config['dell_sc_ssn']
         connection.vfname = self.config.get(
-            'volume_folder_name', DEFAULT_VOLUME_FOLDER)
+            'volume_folder_name', DEFAULT_VOLUME_FOLDER).strip()
         connection.sfname = self.config.get(
-            'server_folder_name', DEFAULT_SERVER_FOLDER)
+            'server_folder_name', DEFAULT_SERVER_FOLDER).strip()
         connection.open_connection()
         return connection
 
@@ -1439,13 +1438,9 @@ class StorageCenterApi(object):
             r = self.client.post('StorageCenter/ScVolume/%s/MapToServer'
                                  % volumeid,
                                  payload)
-            if r.status_code == 200:
+            if self._check_result(r):
                 # We just return our mapping
                 return self._first_result(r)
-            # Should not be here.
-            LOG.debug('MapToServer error: %(code)d %(reason)s',
-                      {'code': r.status_code,
-                       'reason': r.reason})
         # Error out
         LOG.error('Unable to map %(vol)s to %(srv)s',
                   {'vol': scvolume['name'],

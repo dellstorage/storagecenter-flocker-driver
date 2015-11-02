@@ -62,7 +62,6 @@ def create_driver_instance(cluster_id, **config):
     root_logger.setLevel(logging.DEBUG)
 
     config['cluster_id'] = cluster_id
-    LOG.info("Config passed in: %s", config)
     return DellStorageCenterBlockDeviceAPI(**config)
 
 
