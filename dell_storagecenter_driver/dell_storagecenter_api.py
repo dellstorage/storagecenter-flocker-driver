@@ -601,6 +601,7 @@ class StorageCenterApi(object):
         vfname = (self.vfname if self.vfname.endswith('/')
                   else self.vfname + '/')
         pf.append('volumeFolderPath', vfname)
+        pf.append('inRecycleBin', False)
         r = self.client.post('StorageCenter/ScVolume/GetList',
                              pf.payload)
         if self._check_result(r):
