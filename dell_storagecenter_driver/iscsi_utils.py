@@ -29,7 +29,7 @@ LOG = logging.getLogger(__name__)
 def get_initiator_name():
     """Gets the iSCSI initiator name."""
     output = subprocess.check_output(
-        ['sudo', 'cat', '/etc/iscsi/initiatorname.iscsi'])
+        ['cat', '/etc/iscsi/initiatorname.iscsi'])
     lines = output.split('\n')
     for line in lines:
         if '=' in line:
