@@ -579,6 +579,18 @@ class StorageCenterApi(object):
                 name = profile.get('name', '').replace(' ', '').lower()
                 if name == storage_profile:
                     return profile
+
+        # It's possible the standard Flocker profiles are requested but
+        # matching named profiles are not defined on the SC. In this case
+        # we match up the Flocker default profiles with the SC default
+        # profiles.
+        if storage_profile == 'gold':
+            return self._find_storage_profile('highpriority')
+        elif storage_profile == 'silver':
+            return self._find_storage_profile('mediumpriority')
+        elif storage_profile == 'bronze':
+            return self._find_storage_profile('lowpriority')
+
         return None
 
     def list_volumes(self):
@@ -1430,8 +1442,6 @@ class StorageCenterApi(object):
             payload['server'] = serverid
             advanced = {}
             advanced['MapToDownServerHbas'] = True
-            # NOTE: for now we are just doing single pathing
-            advanced['MaximumPathCount'] = 1
             advanced['BootVolume'] = False
             advanced['NoPreferredUseNextAvailable'] = True
             advanced['UseNextAvailable'] = True

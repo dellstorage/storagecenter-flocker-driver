@@ -20,6 +20,7 @@ import os
 import re
 import shlex
 import subprocess
+import time
 
 
 LOG = logging.getLogger(__name__)
@@ -45,7 +46,8 @@ def _exec(cmd):
     """
     LOG.info('Running %s', cmd)
     output = subprocess.check_output(shlex.split(cmd))
-    LOG.debug('Result: %s', output)
+    if output:
+        LOG.debug('Result: %s', output)
     return output
 
 
@@ -68,6 +70,8 @@ def _do_login_logout(iqn, ip, do_login):
 
 def _manage_session(ip_addr, port, do_login=True):
     """Manage iSCSI sessions for all ports in a portal."""
+    if ip_addr == '0.0.0.0':
+        return
     output = _exec('iscsiadm -m discovery -t st -p %s %s' %
                    (ip_addr, port))
     lines = output.split('\n')
@@ -99,14 +103,48 @@ def rescan_iscsi():
     LOG.info('Rescan took %s - output: %s', (end - start), lines)
 
 
-def find_path(device_id):
-    """Looks for the local device path.
+def _get_multipath_device(sd_device):
+    """Get the multipath device for a volume.
 
-    Currently only supports a single non-multipath sd device.
+    Output from multipath -l should be something like:
+    36000d31000fa9e0000000000000002f2 dm-5 COMPELNT,Compellent Vol
+    size=1.0G features='1 queue_if_no_path' hwhandler='0' wp=rw
+    `-+- policy='queue-length 0' prio=-1 status=active
+      |- 8:0:0:2  sdx 65:112 active undef running
+      |- 12:0:0:2 sdv 65:80  active undef running
+      |- 14:0:0:2 sdw 65:96  active undef running
+      `- 10:0:0:2 sdy 65:128 active undef running
+
+    :param sd_device: The SCSI device to look for.
+    :return: The /dev/mapper/ multipath device if one exists.
+    """
+    result = None
+    try:
+        output = _exec('multipath -l %s' % sd_device)
+        if output:
+            lines = output.split('\n')
+            for line in lines:
+                if 'COMPELNT' not in line:
+                    continue
+                name = line.split(' ')[0]
+                result = '/dev/mapper/%s' % name
+                break
+    except Exception:
+        # Oh well, we tried
+        pass
+
+    return result
+
+
+def find_paths(device_id):
+    """Looks for the local device paths.
+
+    Note: The first element will be the multipath device if one is present.
 
     :param device_id: The page 83 device id.
-    :returns: The local path or None.
+    :returns: A list of the local paths.
     """
+    result = []
     regex = re.compile('sd[a-z]+(?![\d])')
     for dev in os.listdir('/dev/'):
         if regex.match(dev):
@@ -116,33 +154,55 @@ def find_path(device_id):
                                dev)
                 if device_id in output:
                     LOG.info('Found %s at %s', device_id, dev)
-                    return '/dev/%s' % dev
+                    result.append('/dev/%s' % dev)
             except Exception:
                 LOG.exception('Error getting device id for %s', dev)
-    return None
+
+    # Functional tests always want the same device reported
+    result.sort()
+
+    if result:
+        # Check if there is a multipath device
+        mpath_dev = _get_multipath_device(result[0])
+        if mpath_dev:
+            LOG.info('Found multipath device %s', mpath_dev)
+            result.insert(0, mpath_dev)
+    return result
 
 
 def remove_device(path):
     """Prepare removal of SCSI device.
 
-    :param path: The /dev/sdX path to remove.
+    :param path: The /dev/sdX or /dev/mapper/X path to remove.
     """
     if not path:
         return
-    sd = path.replace('/dev/', '')
-    remove_path = '/sys/block/%s/device/delete' % sd
-    if os.path.exists(remove_path):
+
+    if '/dev/sd' in path:
+        sd = path.replace('/dev/', '')
+        remove_path = '/sys/block/%s/device/delete' % sd
+        if os.path.exists(remove_path):
+            try:
+                _exec('blockdev --flushbufs %s' % path)
+                time.sleep(4)
+            except Exception:
+                LOG.exception('Error flushing IO to %s', path)
+            try:
+                _exec('sh -c "echo 1 > %s"' % remove_path)
+                time.sleep(1)
+            except Exception:
+                LOG.exception('Error removing device %s', sd)
+    else:
         try:
-            _exec('blockdev --flushbufs %s' % path)
+            path = path.replace('/dev/mapper/', '')
+            _exec('multipath -f %s' % path)
         except Exception:
-            LOG.exception('Error flushing IO to %s', path)
-        try:
-            _exec('sh -c "echo 1 > %s"' % remove_path)
-        except Exception:
-            LOG.exception('Error removing device %s', sd)
+            LOG.exception('Error removing multipath device %s', path)
 
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.DEBUG)
+
     # Get command line arguments
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -156,6 +216,8 @@ if __name__ == "__main__":
         action='store_true')
     parser.add_argument(
         "--remove", "-x", help="Remove a device.", default=None)
+    parser.add_argument(
+        "--get_paths", "-g", help="Get paths for a SCSI ID.", default=None)
     args = parser.parse_args()
 
     if args.initiator:
@@ -172,3 +234,8 @@ if __name__ == "__main__":
 
     if args.remove:
         remove_device(args.remove)
+
+    if args.get_paths:
+        paths = find_paths(args.get_paths)
+        for path in paths:
+            LOG.info(path)

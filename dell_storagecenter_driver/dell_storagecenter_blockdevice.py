@@ -28,6 +28,11 @@ from zope.interface import implementer
 import dell_storagecenter_api
 import iscsi_utils
 
+try:
+    from flocker.node.agents.blockdevice import IProfiledBlockDeviceAPI as IBD
+except ImportError:
+    from flocker.node.agents.blockdevice import IBlockDeviceAPI as IBD
+
 
 LOG = logging.getLogger(__name__)
 ALLOCATION_UNIT = bitmath.GiB(1).bytes
@@ -69,7 +74,7 @@ class BlockDriverAPIException(Exception):
     """General backend API exception."""
 
 
-@implementer(blockdevice.IBlockDeviceAPI)
+@implementer(IBD)
 class DellStorageCenterBlockDeviceAPI(object):
     """Block device driver for Dell Storage Center.
 
@@ -139,6 +144,17 @@ class DellStorageCenterBlockDeviceAPI(object):
         :param size: The size of the new volume in bytes.
         :return: A ``BlockDeviceVolume``
         """
+        return self.create_volume_with_profile(dataset_id, size, None)
+
+    def create_volume_with_profile(self, dataset_id, size, profile_name):
+        """Create a new volume on the array.
+
+        :param dataset_id: The Flocker dataset ID for the volume.
+        :param size: The size of the new volume in bytes.
+        :param profile_name: The name of the storage profile for
+                             this volume.
+        :return: A ``BlockDeviceVolume``
+        """
         volume_name = u"%s" % dataset_id
         volume_size = self._bytes_to_gig(size)
 
@@ -146,7 +162,8 @@ class DellStorageCenterBlockDeviceAPI(object):
         with self._client.open_connection() as api:
             try:
                 scvolume = api.create_volume(volume_name,
-                                             volume_size)
+                                             volume_size,
+                                             profile_name)
             except Exception:
                 LOG.exception('Error creating volume.')
                 raise
@@ -269,8 +286,10 @@ class DellStorageCenterBlockDeviceAPI(object):
                 raise blockdevice.UnattachedVolume(blockdevice_id)
 
             device_id = scvolume['deviceId']
-            path = iscsi_utils.find_path(device_id)
-            iscsi_utils.remove_device(path)
+            paths = iscsi_utils.find_paths(device_id)
+            paths.reverse()
+            for path in paths:
+                iscsi_utils.remove_device(path)
 
             # Make sure we have a server defined for this host
             iqn = iscsi_utils.get_initiator_name()
@@ -350,9 +369,10 @@ class DellStorageCenterBlockDeviceAPI(object):
         # Look for any new devices
         retries = 0
         while retries < 4:
-            path = iscsi_utils.find_path(device_id)
-            if path:
-                return filepath.FilePath(path).realpath()
+            paths = iscsi_utils.find_paths(device_id)
+            if paths:
+                # Just return the first path
+                return filepath.FilePath(paths[0]).realpath()
             retries += 1
             LOG.info('%s not found, attempt %d', device_id, retries)
             time.sleep(5)
