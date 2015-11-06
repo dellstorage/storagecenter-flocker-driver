@@ -25,6 +25,8 @@ import yaml
 from flocker.node.agents import blockdevice
 from flocker.node.agents.test.test_blockdevice import (
     make_iblockdeviceapi_tests)
+from flocker.node.agents.test.test_blockdevice import (
+    make_iprofiledblockdeviceapi_tests)
 from twisted.python.components import proxyForInterface
 from zope.interface import implementer
 
@@ -38,7 +40,7 @@ MIN_ALLOCATION_UNIT = MIN_ALLOCATION_SIZE
 LOG = logging.getLogger(__name__)
 
 
-@implementer(blockdevice.IBlockDeviceAPI)
+@implementer(blockdevice.IBlockDeviceAPI, blockdevice.IProfiledBlockDeviceAPI)
 class TestDriver(proxyForInterface(blockdevice.IBlockDeviceAPI, 'original')):
     """Wrapper around driver class to provide test cleanup."""
     def __init__(self, original):
@@ -63,6 +65,13 @@ class TestDriver(proxyForInterface(blockdevice.IBlockDeviceAPI, 'original')):
     def create_volume(self, dataset_id, size):
         """Track all volume creation."""
         blockdevvol = self.original.create_volume(dataset_id, size)
+        self.volumes[u"%s" % dataset_id] = blockdevvol.blockdevice_id
+        return blockdevvol
+
+    def create_volume_with_profile(self, dataset_id, size, profile_name):
+        """Track all volume creation."""
+        blockdevvol = self.original.create_volume_with_profile(
+            dataset_id, size, profile_name)
         self.volumes[u"%s" % dataset_id] = blockdevvol.blockdevice_id
         return blockdevvol
 
@@ -104,4 +113,13 @@ class DellStorageCenterBlockDeviceAPIInterfaceTests(
         minimum_allocatable_size=MIN_ALLOCATION_SIZE,
         device_allocation_unit=MIN_ALLOCATION_UNIT,
         unknown_blockdevice_id_factory=lambda test: unicode(uuid4()))):
+    pass
+
+
+class DellStorageCenterProfiledBlockDeviceAPIInterfaceTests(
+    make_iprofiledblockdeviceapi_tests(
+        profiled_blockdevice_api_factory=(
+            lambda test_case: api_factory(test_case)
+        ),
+        dataset_size=MIN_ALLOCATION_UNIT)):
     pass

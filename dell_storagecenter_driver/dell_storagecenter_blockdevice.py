@@ -70,6 +70,7 @@ class BlockDriverAPIException(Exception):
 
 
 @implementer(blockdevice.IBlockDeviceAPI)
+@implementer(blockdevice.IProfiledBlockDeviceAPI)
 class DellStorageCenterBlockDeviceAPI(object):
     """Block device driver for Dell Storage Center.
 
