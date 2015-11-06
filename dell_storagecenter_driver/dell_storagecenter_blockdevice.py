@@ -28,11 +28,6 @@ from zope.interface import implementer
 import dell_storagecenter_api
 import iscsi_utils
 
-try:
-    from flocker.node.agents.blockdevice import IProfiledBlockDeviceAPI as IBD
-except ImportError:
-    from flocker.node.agents.blockdevice import IBlockDeviceAPI as IBD
-
 
 LOG = logging.getLogger(__name__)
 ALLOCATION_UNIT = bitmath.GiB(1).bytes
@@ -74,7 +69,7 @@ class BlockDriverAPIException(Exception):
     """General backend API exception."""
 
 
-@implementer(IBD)
+@implementer(blockdevice.IBlockDeviceAPI)
 class DellStorageCenterBlockDeviceAPI(object):
     """Block device driver for Dell Storage Center.
 
