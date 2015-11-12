@@ -18,7 +18,7 @@ from setuptools import setup
 
 setup(
     name='dell_storagecenter_driver',
-    version='1.0',
+    version='1.2',
     description='Dell Storage Center Plugin for Flocker',
     license='Apache 2.0',
 
