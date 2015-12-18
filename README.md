@@ -1,6 +1,8 @@
 Dell Storage Center Driver for ClusterHQ/Flocker
 ================================================
 
+*Certified against Flocker 1.7.0*
+
 This block storage driver for [Flocker](https://clusterhq.com/) enables Dell Storage Center persistent block storage.
 
 ## Overview
@@ -16,13 +18,9 @@ The following components are required before using the Dell Storage Center Drive
 * Dell Enterprise Manager 2015 R1 or later
 * iSCSI initiator installed on all nodes
 
-*Certified against Flocker 1.7.0*
-
 **Flocker**
 
 You must first have Flocker installed on your node. Instructions on getting started with Flocker can be found on the [Flocker](https://clusterhq.com/flocker/getting-started) web site.
-
-This driver has been tested against Flocker 1.4.0.
 
 **Enterprise Manager**
 
