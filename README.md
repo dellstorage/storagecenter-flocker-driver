@@ -54,7 +54,7 @@ sudo apt-get install open-iscsi
 Download the Dell Storage Center driver to the node on which you want to use Storage Center block storage. This process will need to be performed for each node in your cluster.
 
 ```bash
-git clone https://github.org/dellstorage/storagecenter-flocker-driver
+git clone https://github.com/dellstorage/storagecenter-flocker-driver
 cd storagecenter-flocker-driver
 sudo /opt/flocker/bin/python setup.py install
 ```
